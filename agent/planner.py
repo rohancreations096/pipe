@@ -2,11 +2,13 @@ def plan_pipeline(user_input):
     """
     Simple planner (can upgrade with LLM later)
     """
+    
     plan = [
-        "ingest",
-        "clean",
-        "transform",
-        "validate",
-        "store"
-    ]
+    "ingest",
+    "clean",
+    "transform",
+    "validate",
+    "anomaly",
+    "store"
+]
     return plan
