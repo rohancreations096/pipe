@@ -5,3 +5,4 @@ uvicorn
 apscheduler
 sqlite-utils
 scikit-learn
+plotly
