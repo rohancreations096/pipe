@@ -1,18 +1,39 @@
+from tools.llm import ask_llm
+
 def answer_question(df, question):
-    question = question.lower()
+    question_lower = question.lower()
 
-    if "rows" in question:
-        return f"The dataset has {df.shape[0]} rows."
+    try:
+        # 🔹 Rule-based logic
+        if "rows" in question_lower:
+            return f"The dataset has {df.shape[0]} rows."
 
-    if "columns" in question:
-        return f"The dataset has {df.shape[1]} columns."
+        if "columns" in question_lower:
+            return f"The dataset has {df.shape[1]} columns."
 
-    if "missing" in question:
-        return f"Missing values: {df.isnull().sum().sum()}"
+        if "missing" in question_lower or "null" in question_lower:
+            return f"Total missing values: {df.isnull().sum().sum()}"
 
-    if "average" in question or "mean" in question:
-        numeric = df.select_dtypes(include=['int64', 'float64'])
-        if not numeric.empty:
-            return numeric.mean().to_string()
+        if "mean" in question_lower or "average" in question_lower:
+            numeric = df.select_dtypes(include=['int64', 'float64'])
+            if numeric.empty:
+                return "No numeric columns found."
+            return "Mean values:\n" + numeric.mean().to_string()
 
-    return "I couldn't understand. Try: rows, columns, mean, missing values."
+        # 🔥 FORCE LLM FALLBACK (THIS WAS MISSING)
+        prompt = f"""
+        You are a data analyst.
+
+        Dataset columns: {list(df.columns)}
+
+        User question: {question}
+
+        Give a clear, simple answer.
+        """
+
+        response = ask_llm(prompt)
+
+        return f"🤖 AI Response:\n{response}"
+
+    except Exception as e:
+        return f"Error: {str(e)}"

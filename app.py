@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import sys
+import os
+sys.path.append(os.getcwd())
 
 from main import run_pipeline
 from scheduler import start_scheduler, stop_scheduler, get_scheduler_status

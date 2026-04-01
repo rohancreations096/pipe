@@ -6,3 +6,4 @@ apscheduler
 sqlite-utils
 scikit-learn
 plotly
+requests
