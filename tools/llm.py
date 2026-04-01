@@ -6,7 +6,7 @@ def ask_llm(prompt):
     api_key = st.secrets.get("GROQ_API_KEY")
 
     if not api_key:
-        return "No API key configured."
+        return "⚠️ API key missing in Streamlit secrets."
 
     url = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -18,13 +18,23 @@ def ask_llm(prompt):
     data = {
         "model": "llama3-8b-8192",
         "messages": [
-            {"role": "user", "content": prompt}
-        ]
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "temperature": 0.7
     }
 
     try:
-        res = requests.post(url, headers=headers, json=data)
-        return res.json()["choices"][0]["message"]["content"]
+        response = requests.post(url, headers=headers, json=data)
+
+        # 🔥 DEBUG (important)
+        if response.status_code != 200:
+            return f"⚠️ LLM error {response.status_code}: {response.text}"
+
+        result = response.json()
+        return result["choices"][0]["message"]["content"]
 
     except Exception as e:
-        return f"LLM Error: {str(e)}"
+        return f"LLM Exception: {str(e)}"
