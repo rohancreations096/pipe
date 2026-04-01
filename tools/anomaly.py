@@ -1,17 +1,27 @@
-from sklearn.ensemble import IsolationForest
-from utils.logger import log
+import numpy as np
 
-def detect_anomalies(df):
+def detect_anomalies(df, log):
+    issues = []
 
-    log("Running anomaly detection")
+    numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns
 
-    numeric_df = df.select_dtypes(include=['int64', 'float64'])
+    for col in numeric_cols:
+        q1 = df[col].quantile(0.25)
+        q3 = df[col].quantile(0.75)
+        iqr = q3 - q1
 
-    if numeric_df.empty:
-        return df, None
+        lower = q1 - 1.5 * iqr
+        upper = q3 + 1.5 * iqr
 
-    model = IsolationForest(contamination=0.05, random_state=42)
+        outliers = df[(df[col] < lower) | (df[col] > upper)]
 
-    df['anomaly'] = model.fit_predict(numeric_df)
+        if not outliers.empty:
+            issues.append(f"Outliers detected in {col}")
 
-    return df, df[df['anomaly'] == -1]
+            # Cap values
+            df[col] = np.clip(df[col], lower, upper)
+
+    if issues:
+        log(f"[ANOMALY] {issues}")
+
+    return df

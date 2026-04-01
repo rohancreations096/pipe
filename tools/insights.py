@@ -1,15 +1,15 @@
+from tools.llm import ask_llm
+
 def generate_insights(df):
-    insights = []
 
-    insights.append(f"Dataset has {df.shape[0]} rows and {df.shape[1]} columns.")
+    sample = df.sample(min(20, len(df))).to_string()
 
-    missing = df.isnull().sum().sum()
-    insights.append(f"Total missing values: {missing}")
+    prompt = f"""
+    Analyze dataset:
 
-    numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns
+    {sample}
 
-    if len(numeric_cols) > 0:
-        for col in numeric_cols[:3]:
-            insights.append(f"{col}: mean={df[col].mean():.2f}, max={df[col].max()}")
+    Give 5 insights.
+    """
 
-    return insights
+    return ask_llm(prompt)

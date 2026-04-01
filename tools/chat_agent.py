@@ -1,39 +1,32 @@
 from tools.llm import ask_llm
 
 def answer_question(df, question):
-    question_lower = question.lower()
 
-    try:
-        # 🔹 Rule-based logic
-        if "rows" in question_lower:
-            return f"The dataset has {df.shape[0]} rows."
+    q = question.lower()
 
-        if "columns" in question_lower:
-            return f"The dataset has {df.shape[1]} columns."
+    if "rows" in q:
+        return f"Rows: {df.shape[0]}"
 
-        if "missing" in question_lower or "null" in question_lower:
-            return f"Total missing values: {df.isnull().sum().sum()}"
+    if "columns" in q:
+        return f"Columns: {df.shape[1]}"
 
-        if "mean" in question_lower or "average" in question_lower:
-            numeric = df.select_dtypes(include=['int64', 'float64'])
-            if numeric.empty:
-                return "No numeric columns found."
-            return "Mean values:\n" + numeric.mean().to_string()
+    if "missing" in q:
+        return f"Missing values: {df.isnull().sum().sum()}"
 
-        # 🔥 FORCE LLM FALLBACK (THIS WAS MISSING)
-        prompt = f"""
-        You are a data analyst.
+    if "mean" in q or "average" in q:
+        return df.select_dtypes(include=['int64','float64']).mean().to_string()
 
-        Dataset columns: {list(df.columns)}
+    # LLM fallback
+    sample = df.sample(min(20, len(df))).to_string()
 
-        User question: {question}
+    prompt = f"""
+    Dataset sample:
+    {sample}
 
-        Give a clear, simple answer.
-        """
+    Question:
+    {question}
 
-        response = ask_llm(prompt)
+    Answer clearly.
+    """
 
-        return f"🤖 AI Response:\n{response}"
-
-    except Exception as e:
-        return f"Error: {str(e)}"
+    return ask_llm(prompt)
